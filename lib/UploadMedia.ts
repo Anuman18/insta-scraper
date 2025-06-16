@@ -1,6 +1,6 @@
 import { edgestoreClient } from './edgestore'
 
-const uploadToEdgeStore = async (url: string, filename: string) => {
+export const uploadToEdgeStore = async (url: string, filename: string) => {
   const res = await fetch(url)
   const blob = await res.blob()
 
