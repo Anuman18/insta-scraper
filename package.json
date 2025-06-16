@@ -9,11 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.80.7",
     "axios": "^1.10.0",
+    "edgestore": "^1.0.3",
     "next": "15.3.3",
+    "next-auth": "^4.24.11",
     "puppeteer": "^24.10.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-query": "^3.39.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

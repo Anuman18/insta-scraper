@@ -1,5 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import puppeteer from 'puppeteer'
+import { uploadToEdgeStore } from '@/lib/uploadMedia'
+
+type MediaItem = {
+  src: string
+  type: 'image' | 'video'
+  uploadedUrl?: string | null
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).end('Method Not Allowed')
@@ -23,23 +30,36 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await page.waitForSelector('img, video', { timeout: 10000 })
 
-    const media = await page.evaluate(() => {
+    const media: MediaItem[] = await page.evaluate(() => {
       const imgs = Array.from(document.querySelectorAll('img')).map((el) => ({
         src: el.getAttribute('src'),
-        type: 'image',
+        type: 'image' as const,
       }))
       const vids = Array.from(document.querySelectorAll('video')).map((el) => ({
         src: el.getAttribute('src'),
-        type: 'video',
+        type: 'video' as const,
       }))
       return [...imgs, ...vids].filter((item) => item.src)
     })
 
     await browser.close()
 
-    res.status(200).json({ media })
+    // ⬆ Upload to EdgeStore
+    const uploaded = await Promise.all(
+      media.map(async (item) => {
+        try {
+          const url = await uploadToEdgeStore(item.src, item.type)
+          return { ...item, uploadedUrl: url }
+        } catch (err) {
+          console.error(`Upload failed for ${item.src}`, err)
+          return { ...item, uploadedUrl: null }
+        }
+      })
+    )
+
+    return res.status(200).json({ media: uploaded })
   } catch (err) {
     console.error(err)
-    res.status(500).json({ error: 'Failed to scrape profile' })
+    res.status(500).json({ error: 'Failed to scrape or upload media' })
   }
 }
