@@ -1,4 +1,4 @@
-import EdgeStoreClient from '@edgestore/server'
+import { createEdgeStoreClient } from '@edgestore/server'
 
 export const edgestoreClient = createEdgeStoreClient({
   endpoint: process.env.ES_ENDPOINT!,

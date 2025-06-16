@@ -1,17 +1,19 @@
 import { edgestoreClient } from './edgestore'
-import axios from 'axios'
 
-export const uploadToEdgeStore = async (url: string, type: 'image' | 'video') => {
-  const response = await axios.get(url, { responseType: 'arraybuffer' })
-  const buffer = Buffer.from(response.data)
+const uploadToEdgeStore = async (url: string, filename: string) => {
+  const res = await fetch(url)
+  const blob = await res.blob()
 
-  const upload = await edgestoreClient.upload({
-    file: buffer,
-    options: {
-      contentType: type === 'image' ? 'image/jpeg' : 'video/mp4',
-      fullPath: `insta/${Date.now()}.${type === 'image' ? 'jpg' : 'mp4'}`,
+  const buffer = Buffer.from(await blob.arrayBuffer())
+
+  const file = await edgestoreClient.files.upload({
+    file: {
+      buffer,
+      size: buffer.length,
+      mimetype: blob.type,
+      originalName: filename,
     },
   })
 
-  return upload.url
+  return file.url
 }
