@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import puppeteer from 'puppeteer'
-import { uploadToEdgeStore } from '@/lib/uploadMedia'
+import { uploadToEdgeStore } from '../../lib/UploadMedia'
 
 type MediaItem = {
   src: string
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     const browser = await puppeteer.launch({
-      headless: 'new',
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     })
     const page = await browser.newPage()
@@ -39,7 +39,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         src: el.getAttribute('src'),
         type: 'video' as const,
       }))
-      return [...imgs, ...vids].filter((item) => item.src)
+      return [...imgs, ...vids]
+        .filter((item) => item.src !== null)
+        .map((item) => ({ ...item, src: item.src as string }))
     })
 
     await browser.close()
